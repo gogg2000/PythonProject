@@ -1,0 +1,258 @@
+import pandas as pd
+import requests
+import numpy as np
+import dash
+from dash import dcc, html, Output, Input
+import plotly.graph_objs as go
+from dash.exceptions import PreventUpdate
+
+#importing data
+    #importing data q4 2023
+url1 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2023/4th-quarter/4q23-earnings-supplement.xlsx"
+s1 = requests.get(url1).content
+q4_2023 = pd.read_excel(s1, sheet_name= "Page 16")
+
+    #importing data q3 2023
+url2 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2023/3rd-quarter/3q23-earnings-supplement.xlsx"
+s2 = requests.get(url2).content
+q3_2023 = pd.read_excel(s2, sheet_name= "Page 16")
+
+    #importing data q2 2023
+url3 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2023/2nd-quarter/2q23-earnings-supplement.xlsx"
+s3 = requests.get(url3).content
+q2_2023 = pd.read_excel(s3, sheet_name= "Page 16")
+
+    #importing data q1 2023
+url4 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2023/1st-quarter/1q23-earnings-supplement.xlsx"
+s4 = requests.get(url4).content
+q1_2023 = pd.read_excel(s4, sheet_name= "Page 16")
+
+    #importing data q4 2022
+url5 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2022/4th-quarter/4q22-earnings-supplement-xls.xlsx"
+s5 = requests.get(url5).content
+q4_2022 = pd.read_excel(s5, sheet_name= "Page 16")
+    
+    #importing data q3 2022
+url6 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2022/3rd-quarter/3Q22_Earnings_Supplement.xlsx"
+s6 = requests.get(url6).content
+q3_2022 = pd.read_excel(s6, sheet_name= "Page 15")
+
+    #importing data q2 2022
+url7 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2022/2nd-quarter/2Q22-Earnings-Supplement.xlsx"
+s7 = requests.get(url7).content
+q2_2022 = pd.read_excel(s7, sheet_name= "Page 15")
+
+    #importing data q1 2022
+url8 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/1q22-earnings-supplement.xlsx"
+s8 = requests.get(url8).content
+q1_2022 = pd.read_excel(s8, sheet_name= "Page 15")
+
+    #imoporting data q4 2021
+url9 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2021/4th-quarter/4Q21_Earnings_Supplement.xlsx"
+s9 = requests.get(url9).content
+q4_2021 = pd.read_excel(s9, sheet_name= "Page 15")
+
+    #importing data q3 2021
+url10 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2021/3rd-quarter/3Q21_Earnings_Supplement.xlsx"
+s10 = requests.get(url10).content
+q3_2021 = pd.read_excel(s10, sheet_name= "Page 15")
+
+    #importing data q2 2021
+url11 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2021/2nd-quarter/2Q21_Earnings_Supplement.xlsx"
+s11 = requests.get(url11).content
+q2_2021 = pd.read_excel(s11, sheet_name= "Page 15")
+
+    #importing data q1 2021
+url12 = "https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/quarterly-earnings/2021/1st-quarter/1Q21_Earnings_Supplement.xlsx"
+s12 = requests.get(url12).content
+q1_2021 = pd.read_excel(s12, sheet_name= "Page 15")
+
+
+#function to clean all the data
+def clean_one(df1):
+
+    #cleaning data
+    rows_to_drop_df1 = list(range(0, 6)) + list(range(46,len(df1)))
+    df1 = df1.drop(rows_to_drop_df1)
+    df1 = df1.drop(df1.columns[0], axis=1)
+
+    df1.iloc[1, 1:] = df1.iloc[0, :-1].values
+
+    df1.iloc[:, 0] = df1.iloc[:, 0].fillna(df1.iloc[:, 1])
+
+    columns_to_drop = [1, 2, 3, 5, 7, 9, 11] + list(range(13, df1.shape[1]))
+    df1 = df1.drop(df1.columns[columns_to_drop], axis=1)
+
+    df1 = df1.dropna(subset=[df1.columns[1]])
+    df1.iloc[0,0]= "Quarter"
+
+    #change rows to columns
+    df1 = df1.transpose()
+    df1.columns = df1.iloc[0]
+    df1 = df1.drop(df1.index[0])
+    
+    #cleaning data part 2
+    df1 = df1.replace(',', '', regex=True)
+    
+    df1 = df1.replace(' \(a\)', '', regex=True)
+    df1 = df1.replace(' \(b\)', '', regex=True)
+    df1 = df1.replace(' \(c\)', '', regex=True)
+    df1 = df1.replace(' \(d\)', '', regex=True)
+    df1 = df1.replace(' \(e\)', '', regex=True)
+
+    df1.columns = df1.columns.str.replace(' \(a\)', '', regex=True)
+    df1.columns = df1.columns.str.replace(' \(b\)', '', regex=True)
+    df1.columns = df1.columns.str.replace(' \(c\)', '', regex=True)
+    df1.columns = df1.columns.str.replace(' \(d\)', '', regex=True)
+    df1.columns = df1.columns.str.replace(' \(e\)', '', regex=True)
+    
+    df1 = df1.replace(['\(', '\)'], '', regex=True)
+
+    df1 = df1.replace('\$ ', '', regex=True)
+    df1 = df1.replace('%', '', regex=True)
+    df1 = df1.apply(pd.to_numeric, errors='ignore')
+    return df1
+
+#function to get the first row of the dataframe
+def main_one(df2):
+    df2 = df2.iloc[0:1]
+    
+    return df2
+#calling functions 
+    #calling function clean_one
+cleaned_df1 = clean_one(q4_2023)
+cleaned_df2 = clean_one(q3_2023)
+cleaned_df3 = clean_one(q2_2023)
+cleaned_df4 = clean_one(q1_2023)
+cleaned_df5 = clean_one(q4_2022)
+cleaned_df6 = clean_one(q3_2022)
+cleaned_df7 = clean_one(q2_2022)
+cleaned_df8 = clean_one(q1_2022)
+
+cleaned_df9 = clean_one(q4_2021)
+cleaned_df10 = clean_one(q3_2021)
+cleaned_df11 = clean_one(q2_2021)
+cleaned_df12 = clean_one(q1_2021)
+
+    #calling function main_one
+main_df1 = main_one(cleaned_df1)
+main_df2 = main_one(cleaned_df2)
+main_df3 = main_one(cleaned_df3)
+main_df4 = main_one(cleaned_df4)
+main_df5 = main_one(cleaned_df5)
+main_df6 = main_one(cleaned_df6)
+main_df7 = main_one(cleaned_df7)
+main_df8 = main_one(cleaned_df8)
+main_df9 = main_one(cleaned_df9)
+main_df10 = main_one(cleaned_df10)
+main_df11 = main_one(cleaned_df11)
+
+#Concatenating all the dataframes
+    #List of DataFrames
+dataframes = [main_df1, main_df2, main_df3, main_df4, main_df5, main_df6, main_df7, main_df8, main_df9, main_df10, main_df11, cleaned_df12]
+
+    #Common column names
+common_columns = set(dataframes[0].columns)
+for df in dataframes[1:]:
+    common_columns = common_columns.intersection(df.columns)
+    #Filter DataFrames
+main_df1_common = main_df1.loc[:, list(common_columns)]
+main_df2_common = main_df2.loc[:, list(common_columns)]
+main_df3_common = main_df3.loc[:, list(common_columns)]
+main_df4_common = main_df4.loc[:, list(common_columns)]
+main_df5_common = main_df5.loc[:, list(common_columns)]
+main_df6_common = main_df6.loc[:, list(common_columns)]
+main_df7_common = main_df7.loc[:, list(common_columns)]
+main_df8_common = main_df8.loc[:, list(common_columns)]
+main_df9_common = main_df9.loc[:, list(common_columns)]
+main_df10_common = main_df10.loc[:, list(common_columns)]
+main_df11_common = main_df11.loc[:, list(common_columns)]
+cleaned_df12_common = cleaned_df12.loc[:, list(common_columns)]
+    #Drop Duplicate Columns
+main_df1_common=main_df1_common.T.drop_duplicates().T
+main_df2_common=main_df2_common.T.drop_duplicates().T
+main_df3_common=main_df3_common.T.drop_duplicates().T
+main_df4_common=main_df4_common.T.drop_duplicates().T
+main_df5_common=main_df5_common.T.drop_duplicates().T
+main_df6_common=main_df6_common.T.drop_duplicates().T
+main_df7_common=main_df7_common.T.drop_duplicates().T
+main_df8_common=main_df8_common.T.drop_duplicates().T
+main_df9_common=main_df9_common.T.drop_duplicates().T
+main_df10_common=main_df10_common.T.drop_duplicates().T
+main_df11_common=main_df11_common.T.drop_duplicates().T
+cleaned_df12_common=cleaned_df12_common.T.drop_duplicates().T
+#Final Concatenation
+concat_df = pd.concat([main_df1_common,main_df2_common, main_df3_common, main_df4_common, main_df5_common, main_df6_common, main_df7_common, main_df8_common, main_df9_common, main_df10_common, main_df11_common, cleaned_df12_common], axis=0)
+
+#Dash App
+app = dash.Dash(__name__)
+
+    #Colors
+jpm_color_primary = custom_color = "rgb(84, 48, 26)"  # Brown
+jpm_color_background = "#F5F5F5"  # Light gray
+jpm_color_text = "#333333"  # Dark gray
+
+#App Layout
+app.layout = html.Div(style={'font-family': 'Arial, sans-serif', 'background-color': jpm_color_background, 'padding': '20px'}, children=[
+    html.Img(src='https://encycolorpedia.com/companies/us/jpmorgan-chase.svg', style={'width': '300px', 'height': 'auto', 'margin-bottom': '20px'}),
+    html.Hr(style={'border-top': f'2px solid {jpm_color_primary}', 'margin-bottom': '20px'}),
+    dcc.Graph(
+        id='line-chart',
+    ),
+    html.Div([
+        dcc.Dropdown(
+            id='y-axis-dropdown',
+            options=[{'label': col, 'value': col} for col in concat_df.columns],
+            multi=True,
+            value=['ROE'],
+            style={'width': '50%', 'color': jpm_color_text, 'background-color': '#FFFFFF',
+                   'border': f'1px solid {custom_color}', 'border-radius': '5px', 'padding': '5px',
+                   'box-shadow': '0px 1px 3px rgba(0, 0, 0, 0.1)'},
+            **{'className': 'custom-dropdown'}
+        ),
+        html.Button("Download Data", id="download-button", style={'background-color': custom_color, 'color': '#FFFFFF', 'border': 'none', 'padding': '10px 20px', 'border-radius': '5px', 'cursor': 'pointer'}),
+        dcc.Download(id="download-data")
+    ], style={'margin-top': '20px', 'display': 'flex', 'justify-content': 'space-between'}),
+    html.P(children='Data Source: JP Morgan', style={'font-size': '12px', 'color': jpm_color_text, 'margin-top': '20px'}),
+    html.P(children='This is not an official page of JPMorgan', style={'font-size': '12px', 'color': jpm_color_text, 'margin-top': '20px'})
+])
+
+#Callback to update the graph
+@app.callback(
+    Output('line-chart', 'figure'),
+    [Input('y-axis-dropdown', 'value')]
+)
+def update_graph(selected_y_values):
+    if not selected_y_values:
+        raise PreventUpdate
+
+    traces = []
+    for y_value in selected_y_values:
+        trace = go.Scatter(
+            x=concat_df['Quarter'],
+            y=concat_df[y_value],
+            mode='lines+markers',
+            name=y_value
+        )
+        traces.append(trace)
+
+    return {
+        'data': traces,
+        'layout': {
+            'title': 'CORPORATE & INVESTMENT BANK: FINANCIAL HIGHLIGHTS',
+            'xaxis': {'title': 'Fiscal Quarters', 'autorange': 'reversed', 'color': jpm_color_text},
+            'yaxis': {'title': 'Values', 'color': jpm_color_text}
+        }
+    }
+
+#Callback to download the data
+@app.callback(
+    Output("download-data", "data"),
+    [Input("download-button", "n_clicks")]
+)
+def download_data(n_clicks):
+    if n_clicks:
+        return dcc.send_data_frame(concat_df.to_excel, "jpm_data.xlsx", index=False)
+#Running the app
+if __name__ == '__main__':
+    app.run_server(debug=True)
